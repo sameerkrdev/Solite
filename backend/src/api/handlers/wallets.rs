@@ -62,3 +62,21 @@ pub async fn get_wallets(State(state): State<Arc<AppState>>) -> Json<Vec<Wallet>
 
     Json(wallets)
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct AirdropRequest {
+    pubkey: String,
+    amount: u64,
+}
+pub async fn airdrop(State(state): State<Arc<AppState>>, Json(body): Json<AirdropRequest>) {
+    let mut wallet_db = state.wallets.write().unwrap();
+
+    let AirdropRequest { pubkey, amount } = body;
+
+    if amount > 50 {
+        panic!("Airdrop amount > 50")
+    }
+
+    wallet_db.credit(&pubkey, amount);
+    wallet_db.debit_from_system(&pubkey, amount);
+}
