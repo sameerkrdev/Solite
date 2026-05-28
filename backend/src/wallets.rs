@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use crate::utils::is_valid_ed25519_pubkey;
+
 #[derive(Clone)]
 pub struct WalletDb {
     pub wallets: HashMap<String, u64>,
@@ -15,6 +17,10 @@ impl WalletDb {
     }
 
     pub fn ensure_wallet(&mut self, key: &str) -> (String, u64) {
+        if !is_valid_ed25519_pubkey(key) {
+            panic!("envalid pubkey")
+        }
+
         let default_balance = 0;
 
         self.wallets
