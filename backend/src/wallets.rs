@@ -33,4 +33,12 @@ impl WalletDb {
     pub fn all_balances(&self) -> HashMap<String, u64> {
         self.wallets.clone()
     }
+
+    pub fn get_balance(&self, key: &str) -> Option<u64> {
+        if !is_valid_ed25519_pubkey(key) {
+            panic!("envalid pubkey")
+        }
+
+        self.wallets.get(key).copied()
+    }
 }
