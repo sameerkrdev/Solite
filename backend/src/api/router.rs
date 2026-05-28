@@ -3,24 +3,24 @@ use std::sync::{Arc, RwLock};
 use axum::Router;
 
 use crate::{
-    accounts::AccountDb,
-    api::routes::{accounts, health},
+    api::routes::{health, wallets},
+    wallets::WalletDb,
 };
 
 #[derive(Clone)]
 pub struct AppState {
-    pub accounts: Arc<RwLock<AccountDb>>,
+    pub wallets: Arc<RwLock<WalletDb>>,
 }
 
 pub fn build_router() -> Router {
-    let accounts_data = AccountDb::new(&[("abc".to_string(), 100)]);
+    let wallets_data = WalletDb::new(&[("SystemProgramWallet".to_string(), 1_000_000)]);
 
     let state = Arc::new(AppState {
-        accounts: Arc::new(RwLock::new(accounts_data)),
+        wallets: Arc::new(RwLock::new(wallets_data)),
     });
 
     Router::new()
         .merge(health::routes())
-        .merge(accounts::routes())
+        .merge(wallets::routes())
         .with_state(state)
 }

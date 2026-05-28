@@ -1,2 +1,2 @@
-pub mod accounts;
+pub mod wallets;
 pub mod health;

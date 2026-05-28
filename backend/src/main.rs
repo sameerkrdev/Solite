@@ -1,6 +1,6 @@
 use std::net::SocketAddr;
 
-mod accounts;
+mod wallets;
 mod api;
 
 use api::router;

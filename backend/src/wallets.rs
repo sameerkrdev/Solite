@@ -1,23 +1,23 @@
 use std::collections::HashMap;
 
 #[derive(Clone)]
-pub struct AccountDb {
-    pub accounts: HashMap<String, u64>,
+pub struct WalletDb {
+    pub wallets: HashMap<String, u64>,
 }
 
-impl AccountDb {
+impl WalletDb {
     pub fn new(initial: &[(String, u64)]) -> Self {
-        let initial_accounts = initial.iter().cloned().collect();
+        let initial_wallets = initial.iter().cloned().collect();
 
         Self {
-            accounts: initial_accounts,
+            wallets: initial_wallets,
         }
     }
 
-    pub fn ensure_account(&mut self, key: &str) -> (String, u64) {
+    pub fn ensure_wallet(&mut self, key: &str) -> (String, u64) {
         let default_balance = 0;
 
-        self.accounts
+        self.wallets
             .entry(key.to_string())
             .or_insert(default_balance);
 
@@ -25,6 +25,6 @@ impl AccountDb {
     }
 
     pub fn all_balances(&self) -> HashMap<String, u64> {
-        self.accounts.clone()
+        self.wallets.clone()
     }
 }
