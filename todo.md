@@ -1,0 +1,3 @@
+- [x] make a route to create a account with balance 0 and uuid key
+- []  Make a post endpoint to add test balance (max:100soli) 
+- [] Replace the uuid with acccount public and private key

@@ -1,16 +1,20 @@
-use axum::{Router, routing::get};
 use std::net::SocketAddr;
+
+mod accounts;
+mod api;
+
+use api::router;
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/", get(|| async { "Hello World" }));
+    let app = router::build_router();
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
 
     println!("Starting server on {}", addr);
 
     let listener = match tokio::net::TcpListener::bind(addr).await {
-        Ok(listerner) => listerner,
+        Ok(listener) => listener,
         Err(err) => {
             panic!("Failed to bind TCP listener: {}", err);
         }
