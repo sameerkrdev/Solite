@@ -1,6 +1,7 @@
 use std::sync::{Arc, RwLock};
 
 use axum::Router;
+use tower_http::cors::{Any, CorsLayer};
 
 use crate::{
     api::routes::{health, wallets},
@@ -19,8 +20,11 @@ pub fn build_router() -> Router {
         wallets: Arc::new(RwLock::new(wallets_data)),
     });
 
+    let cors = CorsLayer::new().allow_origin(Any).allow_methods(Any);
+
     Router::new()
         .merge(health::routes())
         .merge(wallets::routes())
         .with_state(state)
+        .layer(cors)
 }
