@@ -5,7 +5,7 @@
 - [x] make a ensure funtion into accountDb
 - [x] Replace the work "acccout" with "wallet"
 - [X] update the ensure function to validate the key is valid ed25519 key
-- [] Endpoint for dummy airdrop --> get reviever Pubkey, if wallet exits then add balance from system wallet to receiver wallet else first create the wallet with 0 balance then airdrop 
+- [x] Endpoint for dummy airdrop --> get reviever Pubkey, if wallet exits then add balance from system wallet to receiver wallet else first create the wallet with 0 balance then airdrop 
 - [] (Frontend) Make a basic page to create account and add account -> 
     - [] Create Account: generate ed25519 Keypair and store it into localstore/memory
     - [] Add existing Account: Take the public and private key --> store it into localstore/memory
