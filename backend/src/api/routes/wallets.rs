@@ -11,5 +11,5 @@ pub fn routes() -> Router<Arc<AppState>> {
         .route("/", post(wallets::register_wallet))
         .route("/", get(wallets::get_wallets))
         .route("/{key}", get(wallets::get_wallet))
-        .route("/airdrop", get(wallets::airdrop))
+        .route("/airdrop", post(wallets::airdrop))
 }

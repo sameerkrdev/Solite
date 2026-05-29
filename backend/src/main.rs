@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 
 mod api;
+mod error_handler;
 mod utils;
 mod wallets;
 

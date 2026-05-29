@@ -4,7 +4,7 @@
 - [x] Health route
 - [x] AccountsDb with ensure_account (ed25519 validation)
 - [x] Airdrop endpoint
-- [ ] CORS
+- [x] CORS
 - [ ] Error handling + global config
 - [ ] Transaction endpoint (POST /tx with signature verify)
 - [ ] GET /chain
