@@ -14,6 +14,9 @@ pub enum ApiError {
     #[error("invalid address format: {0}")]
     InvalidAddress(String),
 
+    #[error("invalid recovery phrase: {0}")]
+    InvalidRecoveryPhrase(String),
+
     #[error("invalid amount: {0}")]
     InvalidAmount(String),
 
@@ -68,6 +71,7 @@ impl IntoResponse for ApiError {
             ApiError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "INTERNAL_ERROR"),
             ApiError::NotFound(_) => (StatusCode::NOT_FOUND, "NOT_FOUND"),
             ApiError::Conflict(_) => (StatusCode::BAD_REQUEST, "CONFLICT"),
+            ApiError::InvalidRecoveryPhrase(_) => (StatusCode::BAD_REQUEST, "INVALID_PHRASE"),
         };
 
         let body = json!({

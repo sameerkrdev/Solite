@@ -1,4 +1,4 @@
-use super::user::{User, WalletEntry};
+use super::{user::User, wallet::WalletEntry};
 use crate::error_handler::SoliteError;
 use std::collections::HashMap;
 use std::sync::Arc;

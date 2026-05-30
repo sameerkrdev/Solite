@@ -9,8 +9,13 @@ tokio = { version = "1.52.3", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 uuid = { version = "1.23.1", features = ["v4"] }
-ed25519-dalek = "2"
 bs58 = "0.5"
 tower-http = { version = "0.5", features = ["cors"] }
 thiserror = "2.0.18"
 argon2 = { version = "0.5", features = ["std"] }
+bip39 = { version = "2.2.2", features = ["rand"] }
+rand = "0.8"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+slip10 = "0.4"
+hex = "0.4"
+aes-gcm = "0.10"

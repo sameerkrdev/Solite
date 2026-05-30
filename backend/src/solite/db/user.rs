@@ -7,7 +7,7 @@ use uuid::Uuid;
 pub struct User {
     pub id: String,
     pub username: String,
-    pub password_hash: String,
+    pub password: String, // Hashed Password -> user password or google auth pin
     pub email: Option<String>,
     pub google_id: Option<String>,
     pub wallets: Vec<WalletEntry>,
@@ -17,14 +17,14 @@ pub struct User {
 impl User {
     pub fn new(
         username: String,
-        password_hash: String,
+        password: String,
         email: Option<String>,
         google_id: Option<String>,
     ) -> Self {
         Self {
             id: Uuid::new_v4().to_string(),
             username,
-            password_hash,
+            password,
             email,
             google_id: google_id,
             wallets: vec![],
