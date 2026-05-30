@@ -65,9 +65,12 @@ impl UserDb {
             db.by_email.insert(email.clone(), user.id.clone());
         }
 
-        if let Some(ref gid) = user.google_id {
-            db.by_google.insert(gid.clone(), user.id.clone());
+    if let Some(ref gid) = user.google_id {
+        if db.by_google.contains_key(gid) {
+            return Err(SoliteError::GoogleAlreadyLinked);
         }
+        db.by_google.insert(gid.clone(), user.id.clone());
+    }
 
         for wallet in &user.wallets {
             db.by_address
@@ -175,6 +178,30 @@ impl UserDb {
     pub async fn owner_of(&self, address: &str) -> Option<String> {
         let db = self.inner.read().await;
         db.by_address.get(address).cloned()
+    }
+
+    pub async fn get_wallet_by_address(
+        &self,
+        address: &str,
+    ) -> Result<(User, WalletEntry), SoliteError> {
+        let db = self.inner.read().await;
+        let user_id = db
+            .by_address
+            .get(address)
+            .ok_or_else(|| SoliteError::WalletNotFound(address.into()))?;
+
+        let user = db
+            .by_id
+            .get(user_id)
+            .cloned()
+            .ok_or_else(|| SoliteError::UserNotFound(user_id.clone()))?;
+
+        let wallet = user
+            .get_wallet(address)
+            .cloned()
+            .ok_or_else(|| SoliteError::WalletNotFound(address.into()))?;
+
+        Ok((user, wallet))
     }
 
     pub async fn username_exists(&self, username: &str) -> bool {

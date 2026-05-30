@@ -6,7 +6,7 @@ use crate::{
     error_handler::ApiError,
 };
 
-pub async fn list_wallets(
+pub async fn me(
     State(state): State<Arc<AppState>>,
     auth: AuthUser,
 ) -> Result<Json<serde_json::Value>, ApiError> {
@@ -20,6 +20,11 @@ pub async fn list_wallets(
 
     Ok(Json(serde_json::json!({
         "ok": true,
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "google_id": user.google_id,
+        "created_at": user.created_at,
         "wallets": wallets,
     })))
 }

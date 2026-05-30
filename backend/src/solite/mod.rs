@@ -3,3 +3,4 @@ pub mod db;
 pub mod encrypt;
 pub mod keypair;
 pub mod recovery;
+pub mod wallet_service;

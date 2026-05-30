@@ -4,38 +4,35 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum WalletSecret {
     WithPrivateKey {
-        encrypted_private_key: String, // AES-256 encrypted with user password
+        encrypted_private_key: String,
     },
-
-    Withphrase {
-        encrypted_recovery_phrase: String, // BIP39 12/24 words — encrypted
+    WithPhrase {
+        encrypted_recovery_phrase: String,
     },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WalletEntry {
     pub label: String,
-    pub address: String, // base58 pubkey — links to WalletDb
+    pub address: String,
     pub secret: WalletSecret,
     pub kdf_salt: String,
     pub created_at: u64,
 }
 
 impl WalletEntry {
-    pub fn new(address: String, wallet_secret: WalletSecret, label: String, salt: String) -> Self {
+    pub fn new(
+        label: String,
+        address: String,
+        secret: WalletSecret,
+        kdf_salt: String,
+    ) -> Self {
         Self {
             label,
             address,
-            secret: wallet_secret,
-            kdf_salt: salt,
+            secret,
+            kdf_salt,
             created_at: unix_ms_now(),
         }
     }
-
-    // func to generate the recovery phrase
-    // func to generate encryption key via password or google auth pin
-    // func to encrypt the recovery phrase or private key via encryption key
-    // func to decrypt the encrypted recovery phrase or encrypted private key
-    // func to re-generate private key via encypted recovery key
-    // func to generate the key-pair vai encrypted recovery key
 }

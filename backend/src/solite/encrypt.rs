@@ -4,21 +4,19 @@ use rand::{Rng, rngs::OsRng};
 
 use crate::error_handler::ApiError;
 
-// func to generate encryption key --> via password or google auth use pin
-pub fn generate_aes_encryption_key(secret: &str, salt: &str) -> Result<[u8; 32], ApiError> {
-    // let salt = SaltString::generate(&mut OsRng);
+pub fn derive_key_from_password(password: &str, salt_hex: &str) -> Result<[u8; 32], ApiError> {
+    let salt = hex::decode(salt_hex).map_err(|e| ApiError::Internal(e.to_string()))?;
 
     let argon2 = Argon2::default();
-    let mut key = [0u8; 32]; // AES-256 = 32 bytes
+    let mut key = [0u8; 32];
 
     argon2
-        .hash_password_into(secret.as_bytes(), salt.as_bytes(), &mut key)
+        .hash_password_into(password.as_bytes(), &salt, &mut key)
         .map_err(|e| ApiError::Internal(e.to_string()))?;
 
     Ok(key)
 }
 
-// func to encrypt the recovery or private key
 pub fn aes_encrypt(encryption_key: [u8; 32], data: &str) -> Result<String, ApiError> {
     let key = Key::<Aes256Gcm>::from_slice(&encryption_key);
     let cipher = Aes256Gcm::new(key);
@@ -33,32 +31,54 @@ pub fn aes_encrypt(encryption_key: [u8; 32], data: &str) -> Result<String, ApiEr
     let mut combined_bytes = nonce.to_vec();
     combined_bytes.extend_from_slice(&encrypted_bytes);
 
-    let hex_data = hex::encode(combined_bytes);
-    Ok(hex_data)
+    Ok(hex::encode(combined_bytes))
 }
 
-// func to decrypt the recovery or private key
 pub fn aes_decrypt(encryption_key: [u8; 32], hex_string: &str) -> Result<String, ApiError> {
     let key = Key::<Aes256Gcm>::from_slice(&encryption_key);
     let cipher = Aes256Gcm::new(key);
 
-    let bytes = hex::decode(hex_string).map_err(|e| ApiError::Internal(e.to_string()))?;
+    let bytes = hex::decode(hex_string).map_err(|_| ApiError::InvalidWalletPassword)?;
 
     if bytes.len() < 12 {
-        return Err(ApiError::Internal("invalid encrypted data".into()));
+        return Err(ApiError::InvalidWalletPassword);
     }
 
-    let nonce = &bytes[..12];
-    let ciphertext = &bytes[12..];
-
-    let nonce = Nonce::from_slice(&nonce);
+    let (nonce_bytes, ciphertext) = bytes.split_at(12);
+    let nonce = Nonce::from_slice(nonce_bytes);
 
     let decrypted_bytes = cipher
         .decrypt(nonce, ciphertext)
-        .map_err(|e| ApiError::Internal(e.to_string()))?;
+        .map_err(|_| ApiError::InvalidWalletPassword)?;
 
-    let decrypted_string =
-        String::from_utf8(decrypted_bytes.into()).map_err(|e| ApiError::Internal(e.to_string()))?;
+    String::from_utf8(decrypted_bytes).map_err(|_| ApiError::InvalidWalletPassword)
+}
 
-    Ok(decrypted_string)
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn aes_roundtrip() {
+        let key = derive_key_from_password("test-password", &hex::encode([1u8; 16])).unwrap();
+        let encrypted = aes_encrypt(key, "hello world").unwrap();
+        let decrypted = aes_decrypt(key, &encrypted).unwrap();
+        assert_eq!(decrypted, "hello world");
+    }
+
+    #[test]
+    fn nonce_is_prepended() {
+        let key = derive_key_from_password("pwd", &hex::encode([2u8; 16])).unwrap();
+        let encrypted = aes_encrypt(key, "data").unwrap();
+        let bytes = hex::decode(&encrypted).unwrap();
+        assert!(bytes.len() > 12);
+    }
+
+    #[test]
+    fn derive_key_uses_hex_salt_not_utf8() {
+        let salt_hex = hex::encode([0xABu8; 16]);
+        let k1 = derive_key_from_password("pwd", &salt_hex).unwrap();
+        let k2 = derive_key_from_password("pwd", &salt_hex).unwrap();
+        assert_eq!(k1, k2);
+    }
 }
