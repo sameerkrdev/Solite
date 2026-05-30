@@ -18,24 +18,16 @@ pub struct WalletEntry {
     pub address: String, // base58 pubkey — links to WalletDb
     pub secret: WalletSecret,
     pub kdf_salt: String,
-    pub nounce: String,
     pub created_at: u64,
 }
 
 impl WalletEntry {
-    pub fn new(
-        address: String,
-        wallet_secret: WalletSecret,
-        label: String,
-        salt: String,
-        nounce: String,
-    ) -> Self {
+    pub fn new(address: String, wallet_secret: WalletSecret, label: String, salt: String) -> Self {
         Self {
             label,
             address,
             secret: wallet_secret,
             kdf_salt: salt,
-            nounce,
             created_at: unix_ms_now(),
         }
     }
