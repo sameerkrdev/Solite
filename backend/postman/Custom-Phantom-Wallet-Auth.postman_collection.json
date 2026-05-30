@@ -1,0 +1,440 @@
+{
+  "info": {
+    "_postman_id": "solite-phantom-wallet-auth",
+    "name": "Custom Phantom Wallet Auth",
+    "description": "Solite backend — auth + wallet lifecycle (Flows 1–6).\n\nSet collection variables before running:\n- `baseUrl` (default http://127.0.0.1:3000)\n- `password` / `wallet_password` (same value for regular users)\n\nAuth requests auto-save `access_token`, `refresh_token`, `user_id`, `address`, and `recovery_phrase` where applicable.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:3000" },
+    { "key": "username", "value": "alice" },
+    { "key": "password", "value": "secure-pass" },
+    { "key": "wallet_password", "value": "secure-pass" },
+    { "key": "access_token", "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "user_id", "value": "" },
+    { "key": "address", "value": "" },
+    { "key": "recovery_phrase", "value": "" },
+    { "key": "private_key", "value": "" },
+    { "key": "google_id_token", "value": "" },
+    { "key": "message_hex", "value": "48656c6c6f" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/health/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth (public)",
+      "item": [
+        {
+          "name": "Flow 1 — Register + Generate Wallet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.access_token) pm.collectionVariables.set('access_token', j.access_token);",
+                  "if (j.refresh_token) pm.collectionVariables.set('refresh_token', j.refresh_token);",
+                  "if (j.user_id) pm.collectionVariables.set('user_id', j.user_id);",
+                  "if (j.recovery_phrase) pm.collectionVariables.set('recovery_phrase', j.recovery_phrase);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"email\": \"alice@example.com\",\n  \"wallet\": {\n    \"mode\": \"generate\",\n    \"label\": \"main\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/register",
+            "description": "New user, server generates BIP39 phrase. Recovery phrase returned once in response."
+          }
+        },
+        {
+          "name": "Flow 2 — Register + Import Phrase",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.access_token) pm.collectionVariables.set('access_token', j.access_token);",
+                  "if (j.refresh_token) pm.collectionVariables.set('refresh_token', j.refresh_token);",
+                  "if (j.user_id) pm.collectionVariables.set('user_id', j.user_id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"bob\",\n  \"password\": \"{{password}}\",\n  \"wallet\": {\n    \"mode\": \"import_phrase\",\n    \"label\": \"imported\",\n    \"phrase\": \"{{recovery_phrase}}\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/register",
+            "description": "New user imports existing BIP39 phrase. Run Flow 1 first to populate recovery_phrase, or paste your own 12/24-word phrase."
+          }
+        },
+        {
+          "name": "Flow 3 — Register + Import Private Key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.access_token) pm.collectionVariables.set('access_token', j.access_token);",
+                  "if (j.refresh_token) pm.collectionVariables.set('refresh_token', j.refresh_token);",
+                  "if (j.user_id) pm.collectionVariables.set('user_id', j.user_id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"carol\",\n  \"password\": \"{{password}}\",\n  \"wallet\": {\n    \"mode\": \"import_privkey\",\n    \"label\": \"raw-key\",\n    \"private_key\": \"{{private_key}}\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/register",
+            "description": "New user imports base58 Ed25519 private key. Set private_key collection variable (export via GET /user/private-key after Flow 1)."
+          }
+        },
+        {
+          "name": "Register (no wallet)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.access_token) pm.collectionVariables.set('access_token', j.access_token);",
+                  "if (j.refresh_token) pm.collectionVariables.set('refresh_token', j.refresh_token);",
+                  "if (j.user_id) pm.collectionVariables.set('user_id', j.user_id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"dave\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/register"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.access_token) pm.collectionVariables.set('access_token', j.access_token);",
+                  "if (j.refresh_token) pm.collectionVariables.set('refresh_token', j.refresh_token);",
+                  "if (j.user_id) pm.collectionVariables.set('user_id', j.user_id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/login"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.access_token) pm.collectionVariables.set('access_token', j.access_token);",
+                  "if (j.refresh_token) pm.collectionVariables.set('refresh_token', j.refresh_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/refresh"
+          }
+        },
+        {
+          "name": "Google Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.access_token) pm.collectionVariables.set('access_token', j.access_token);",
+                  "if (j.refresh_token) pm.collectionVariables.set('refresh_token', j.refresh_token);",
+                  "if (j.user_id) pm.collectionVariables.set('user_id', j.user_id);",
+                  "if (j.recovery_phrase) pm.collectionVariables.set('recovery_phrase', j.recovery_phrase);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_token\": \"{{google_id_token}}\",\n  \"username\": \"google-user\",\n  \"wallet_password\": \"{{wallet_password}}\",\n  \"wallet\": {\n    \"mode\": \"generate\",\n    \"label\": \"google-main\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/google/register",
+            "description": "Requires valid Google ID token from frontend GIS. Identity via Google; wallet crypto uses wallet_password."
+          }
+        },
+        {
+          "name": "Google Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.access_token) pm.collectionVariables.set('access_token', j.access_token);",
+                  "if (j.refresh_token) pm.collectionVariables.set('refresh_token', j.refresh_token);",
+                  "if (j.user_id) pm.collectionVariables.set('user_id', j.user_id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_token\": \"{{google_id_token}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/google/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "User / Wallet (JWT required)",
+      "auth": {
+        "type": "bearer",
+        "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+      },
+      "item": [
+        {
+          "name": "Get Me",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.wallets && j.wallets.length > 0) {",
+                  "  pm.collectionVariables.set('address', j.wallets[0].address);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/user/me"
+          }
+        },
+        {
+          "name": "List Wallets",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.wallets && j.wallets.length > 0) {",
+                  "  pm.collectionVariables.set('address', j.wallets[0].address);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/user/wallets"
+          }
+        },
+        {
+          "name": "Flow 4 — New Generated Wallet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.wallet && j.wallet.address) pm.collectionVariables.set('address', j.wallet.address);",
+                  "if (j.recovery_phrase) pm.collectionVariables.set('recovery_phrase', j.recovery_phrase);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"wallet_password\": \"{{wallet_password}}\",\n  \"label\": \"second-wallet\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/user/wallet/new",
+            "description": "Existing user — server generates new phrase. Recovery phrase returned once."
+          }
+        },
+        {
+          "name": "Flow 5 — Import Phrase",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.wallet && j.wallet.address) pm.collectionVariables.set('address', j.wallet.address);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mode\": \"phrase\",\n  \"wallet_password\": \"{{wallet_password}}\",\n  \"label\": \"imported-phrase\",\n  \"phrase\": \"{{recovery_phrase}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/user/wallet/import"
+          }
+        },
+        {
+          "name": "Flow 6 — Import Private Key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.wallet && j.wallet.address) pm.collectionVariables.set('address', j.wallet.address);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mode\": \"privkey\",\n  \"wallet_password\": \"{{wallet_password}}\",\n  \"label\": \"imported-key\",\n  \"private_key\": \"{{private_key}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/user/wallet/import"
+          }
+        },
+        {
+          "name": "Export Recovery Phrase",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/user/recovery-phrase?address={{address}}&wallet_password={{wallet_password}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "user", "recovery-phrase"],
+              "query": [
+                { "key": "address", "value": "{{address}}" },
+                { "key": "wallet_password", "value": "{{wallet_password}}" }
+              ]
+            },
+            "description": "WithPhrase wallets only. Fails for WithPrivateKey imports."
+          }
+        },
+        {
+          "name": "Export Private Key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.private_key) pm.collectionVariables.set('private_key', j.private_key);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/user/private-key?address={{address}}&wallet_password={{wallet_password}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "user", "private-key"],
+              "query": [
+                { "key": "address", "value": "{{address}}" },
+                { "key": "wallet_password", "value": "{{wallet_password}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sign Message",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"{{address}}\",\n  \"wallet_password\": \"{{wallet_password}}\",\n  \"message\": \"{{message_hex}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/user/sign",
+            "description": "message is hex-encoded bytes (default: \"Hello\" = 48656c6c6f)"
+          }
+        }
+      ]
+    }
+  ]
+}
