@@ -2,8 +2,8 @@ use std::net::SocketAddr;
 
 mod api;
 mod error_handler;
+mod solite;
 mod utils;
-mod wallets;
 
 use api::router;
 

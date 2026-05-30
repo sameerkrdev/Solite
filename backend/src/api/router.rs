@@ -1,30 +1,28 @@
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use axum::Router;
 use tower_http::cors::{Any, CorsLayer};
 
 use crate::{
-    api::routes::{health, wallets},
-    wallets::WalletDb,
+    api::routes::{health, users},
+    solite::db::store,
 };
 
 #[derive(Clone)]
 pub struct AppState {
-    pub wallets: Arc<RwLock<WalletDb>>,
+    pub users: store::UserDb,
 }
 
 pub fn build_router() -> Router {
-    let wallets_data = WalletDb::new(&[("SystemProgramWallet".to_string(), 1_000_000)]);
+    let users_data = store::UserDb::new();
 
-    let state = Arc::new(AppState {
-        wallets: Arc::new(RwLock::new(wallets_data)),
-    });
+    let state = Arc::new(AppState { users: users_data });
 
     let cors = CorsLayer::new().allow_origin(Any).allow_methods(Any);
 
     Router::new()
-        .merge(health::routes())
-        .merge(wallets::routes())
+        .nest("/api/v1/health", health::routes())
+        .nest("/api/v1/users", users::routes())
         .with_state(state)
         .layer(cors)
 }

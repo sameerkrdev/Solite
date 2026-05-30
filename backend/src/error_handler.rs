@@ -41,6 +41,12 @@ pub enum ApiError {
 
     #[error("internal error: {0}")]
     Internal(String),
+
+    #[error("not found: {0}")]
+    NotFound(String),
+
+    #[error("data conflict: {0}")]
+    Conflict(String),
 }
 
 impl IntoResponse for ApiError {
@@ -60,6 +66,8 @@ impl IntoResponse for ApiError {
             }
             ApiError::MempoolFull => (StatusCode::SERVICE_UNAVAILABLE, "MEMPOOL_FULL"),
             ApiError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "INTERNAL_ERROR"),
+            ApiError::NotFound(_) => (StatusCode::NOT_FOUND, "NOT_FOUND"),
+            ApiError::Conflict(_) => (StatusCode::BAD_REQUEST, "CONFLICT"),
         };
 
         let body = json!({
@@ -69,5 +77,35 @@ impl IntoResponse for ApiError {
         });
 
         (status, Json(body)).into_response()
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum SoliteError {
+    #[error("user not found: {0}")]
+    UserNotFound(String),
+
+    #[error("username already taken: {0}")]
+    UsernameTaken(String),
+
+    #[error("email already taken: {0}")]
+    EmailTaken(String),
+
+    #[error("wallet address already exists: {0}")]
+    AddressAlreadyExists(String),
+
+    #[error("google account already linked")]
+    GoogleAlreadyLinked,
+}
+
+impl From<SoliteError> for ApiError {
+    fn from(e: SoliteError) -> Self {
+        match e {
+            SoliteError::UserNotFound(_) => ApiError::NotFound(e.to_string()),
+            SoliteError::UsernameTaken(_)
+            | SoliteError::EmailTaken(_)
+            | SoliteError::AddressAlreadyExists(_)
+            | SoliteError::GoogleAlreadyLinked => ApiError::Conflict(e.to_string()),
+        }
     }
 }
